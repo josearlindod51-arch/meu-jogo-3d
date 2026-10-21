@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -135,8 +134,7 @@ canvas {
 </div>
 
 <script type="module">
-import * as THREE from
-'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
@@ -160,7 +158,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// ILUMINACAO
+// ILUMINAÇÃO
 scene.add(new THREE.HemisphereLight(0xffffff, 0x71805b, 2));
 
 const sun = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -187,7 +185,7 @@ const stoneMat = material(0x858b96);
 const trunkMat = material(0x79502d);
 const leafMat = material(0x238344);
 
-// CHAO
+// CHÃO
 const ground = new THREE.Mesh(
   new THREE.BoxGeometry(200, 2, 200),
   grassMat
@@ -234,7 +232,7 @@ for (let i = 0; i < 13; i++) {
   );
 }
 
-// ARVORES
+// ÁRVORES
 function makeTree(x, z, scale = 1) {
   makeBlock(
     x, 1.5 * scale, z,
@@ -262,7 +260,7 @@ for (let i = 0; i < 35; i++) {
   makeTree(x, z, 0.7 + Math.random() * 0.7);
 }
 
-// NUVENS SIMPLES
+// NUVENS
 const cloudMat = new THREE.MeshStandardMaterial({
   color: 0xffffff,
   roughness: 1
@@ -333,91 +331,49 @@ function part(parent, sx, sy, sz, mat, x, y, z) {
 // CORPO
 part(body, 1.15, 1.35, 0.62, shirtMat, 0, 1.95, 0);
 
-// CABECA
+// CABEÇA
 const head = new THREE.Group();
 head.position.set(0, 3.05, 0);
 body.add(head);
 
 part(head, 1.05, 1.05, 1.0, skinMat, 0, 0, 0);
-
-// CABELO
 part(head, 1.1, 0.28, 1.08, hairMat, 0, 0.55, 0.02);
 part(head, 0.3, 0.35, 1.08, hairMat, -0.39, 0.34, 0.02);
-
-// OLHOS NA FRENTE DO ROSTO
 part(head, 0.12, 0.15, 0.045, eyeMat, -0.23, 0.08, -0.515);
 part(head, 0.12, 0.15, 0.045, eyeMat, 0.23, 0.08, -0.515);
-
-// BOCA
 part(head, 0.25, 0.055, 0.045, mouthMat, 0, -0.23, -0.52);
 
-// BRACOS COM PIVO
+// BRAÇOS E PERNAS COM PIVÔ
 function makeLimb(sx, sy, sz, mat, x, pivotY, z, offsetY) {
   const pivot = new THREE.Group();
   pivot.position.set(x, pivotY, z);
   body.add(pivot);
 
-  part(
-    pivot,
-    sx, sy, sz,
-    mat,
-    0, -offsetY, 0
-  );
-
+  part(pivot, sx, sy, sz, mat, 0, -offsetY, 0);
   return pivot;
 }
 
-const armL = makeLimb(
-  0.38, 1.2, 0.42,
-  shirtMat, -0.82, 2.48, 0, 0.3
-);
-
-const armR = makeLimb(
-  0.38, 1.2, 0.42,
-  shirtMat, 0.82, 2.48, 0, 0.3
-);
-
-// MAOS
+const armL = makeLimb(0.38, 1.2, 0.42, shirtMat, -0.82, 2.48, 0, 0.3);
+const armR = makeLimb(0.38, 1.2, 0.42, shirtMat, 0.82, 2.48, 0, 0.3);
 part(armL, 0.36, 0.32, 0.4, skinMat, 0, -0.76, 0);
 part(armR, 0.36, 0.32, 0.4, skinMat, 0, -0.76, 0);
 
-// PERNAS COM PIVO
-const legL = makeLimb(
-  0.46, 1.05, 0.48,
-  pantsMat, -0.3, 1.35, 0, 0.48
-);
-
-const legR = makeLimb(
-  0.46, 1.05, 0.48,
-  pantsMat, 0.3, 1.35, 0, 0.48
-);
-
-// SAPATOS
+const legL = makeLimb(0.46, 1.05, 0.48, pantsMat, -0.3, 1.35, 0, 0.48);
+const legR = makeLimb(0.46, 1.05, 0.48, pantsMat, 0.3, 1.35, 0, 0.48);
 part(legL, 0.48, 0.25, 0.68, shoeMat, 0, -0.96, -0.08);
 part(legR, 0.48, 0.25, 0.68, shoeMat, 0, -0.96, -0.08);
 
-// POSICAO INICIAL
 player.position.set(0, 0, 5);
 
 // CONTROLES
 const keys = {};
-const held = {
-  up: false,
-  down: false,
-  left: false,
-  right: false
-};
+const held = { up: false, down: false, left: false, right: false };
 
 window.addEventListener('keydown', (e) => {
   keys[e.key.toLowerCase()] = true;
-
-  if (
-    ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ']
-    .includes(e.key.toLowerCase())
-  ) {
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(e.key.toLowerCase())) {
     e.preventDefault();
   }
-
   if (e.key === ' ' || e.key.toLowerCase() === 'w') {
     if (e.key === ' ') jump();
   }
@@ -429,13 +385,11 @@ window.addEventListener('keyup', (e) => {
 
 function bindButton(id, name) {
   const el = document.getElementById(id);
-
   const start = (e) => {
     e.preventDefault();
     held[name] = true;
     el.setPointerCapture?.(e.pointerId);
   };
-
   const stop = (e) => {
     e.preventDefault();
     held[name] = false;
@@ -444,9 +398,7 @@ function bindButton(id, name) {
   el.addEventListener('pointerdown', start);
   el.addEventListener('pointerup', stop);
   el.addEventListener('pointercancel', stop);
-  el.addEventListener('lostpointercapture', () => {
-    held[name] = false;
-  });
+  el.addEventListener('lostpointercapture', () => { held[name] = false; });
 }
 
 bindButton('up', 'up');
@@ -464,15 +416,13 @@ function jump() {
   grounded = false;
 }
 
-const jumpButton = document.getElementById('jump');
-
-jumpButton.addEventListener('pointerdown', (e) => {
+document.getElementById('jump').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   jump();
 });
 
-// CAMERA GIRATORIA
-let yaw = 0;
+// CÂMERA GIRATÓRIA CORRIGIDA
+let yaw = Math.PI; // Começa virado corretamente para a câmera
 let pitch = 0.22;
 let dragging = false;
 let lastX = 0;
@@ -484,21 +434,15 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   lastY = e.clientY;
 });
 
-window.addEventListener('pointerup', () => {
-  dragging = false;
-});
-
-window.addEventListener('pointercancel', () => {
-  dragging = false;
-});
+window.addEventListener('pointerup', () => { dragging = false; });
+window.addEventListener('pointercancel', () => { dragging = false; });
 
 window.addEventListener('pointermove', (e) => {
   if (!dragging) return;
-
   const dx = e.clientX - lastX;
   const dy = e.clientY - lastY;
 
-  yaw -= dx * 0.006;
+  yaw += dx * 0.006; // Ajustado para sentido correto
   pitch += dy * 0.004;
   pitch = THREE.MathUtils.clamp(pitch, -0.1, 0.85);
 
@@ -506,13 +450,12 @@ window.addEventListener('pointermove', (e) => {
   lastY = e.clientY;
 });
 
-// MOVIMENTO
+// MOVIMENTO E ANIMAÇÃO
 const clock = new THREE.Clock();
 let walkTime = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-
   const dt = Math.min(clock.getDelta(), 0.04);
 
   let forward = 0;
@@ -532,32 +475,25 @@ function animate() {
 
     const speed = 7;
 
-    const moveX =
-      -Math.sin(yaw) * forward +
-       Math.cos(yaw) * sideways;
-
-    const moveZ =
-      -Math.cos(yaw) * forward -
-       Math.sin(yaw) * sideways;
+    // CÁLCULO CORRIGIDO DE MOVIMENTO ALINHADO COM A CÂMERA
+    const moveX = Math.sin(yaw) * forward + Math.cos(yaw) * sideways;
+    const moveZ = Math.cos(yaw) * forward - Math.sin(yaw) * sideways;
 
     player.position.x += moveX * speed * dt;
     player.position.z += moveZ * speed * dt;
 
-    // VIRA O PERSONAGEM PARA A DIRECAO DO MOVIMENTO
-    player.rotation.y = Math.atan2(moveX, moveZ);
+    // Rotação suave do personagem para a direção do movimento
+    const targetRotation = Math.atan2(moveX, moveZ);
+    player.rotation.y = targetRotation;
+    
     walkTime += dt * 10;
   }
 
   // LIMITES DO MUNDO
-  player.position.x = THREE.MathUtils.clamp(
-    player.position.x, -90, 90
-  );
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -90, 90);
+  player.position.z = THREE.MathUtils.clamp(player.position.z, -90, 90);
 
-  player.position.z = THREE.MathUtils.clamp(
-    player.position.z, -90, 90
-  );
-
-  // GRAVIDADE E PULO
+  // GRAVIDADE
   verticalVelocity -= 22 * dt;
   player.position.y += verticalVelocity * dt;
 
@@ -569,24 +505,19 @@ function animate() {
 
   const airborne = !grounded;
 
-  // ANIMACAO DE CAMINHADA
+  // ANIMAÇÃO DOS MEMBROS
   if (moving && !airborne) {
     const swing = Math.sin(walkTime) * 0.65;
-
     armL.rotation.x = swing;
     armR.rotation.x = -swing;
-
     legL.rotation.x = -swing;
     legR.rotation.x = swing;
-
     body.position.y = Math.abs(Math.sin(walkTime * 2)) * 0.07;
   } else if (airborne) {
     armL.rotation.x = -1.1;
     armR.rotation.x = -1.1;
-
     legL.rotation.x = -0.35;
     legR.rotation.x = 0.35;
-
     body.position.y = 0;
   } else {
     armL.rotation.x = 0;
@@ -596,7 +527,7 @@ function animate() {
     body.position.y = 0;
   }
 
-  // CAMERA ATRAS DO PERSONAGEM
+  // CÂMERA EM TERCEIRA PESSOA
   const distance = 8;
   const target = new THREE.Vector3(
     player.position.x,
@@ -607,13 +538,12 @@ function animate() {
   const horizontalDistance = distance * Math.cos(pitch);
 
   camera.position.set(
-    target.x + Math.sin(yaw) * horizontalDistance,
+    target.x - Math.sin(yaw) * horizontalDistance,
     target.y + 2.5 + Math.sin(pitch) * distance,
-    target.z + Math.cos(yaw) * horizontalDistance
+    target.z - Math.cos(yaw) * horizontalDistance
   );
 
   camera.lookAt(target);
-
   renderer.render(scene, camera);
 }
 
@@ -623,12 +553,7 @@ animate();
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-
-  renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-  );
-
+  renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 </script>
