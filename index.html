@@ -422,7 +422,7 @@ document.getElementById('jump').addEventListener('pointerdown', (e) => {
 });
 
 // CÂMERA GIRATÓRIA CORRIGIDA
-let yaw = Math.PI; // Começa virado corretamente para a câmera
+let yaw = 0; // Alinhado com a posição inicial correta
 let pitch = 0.22;
 let dragging = false;
 let lastX = 0;
@@ -442,7 +442,7 @@ window.addEventListener('pointermove', (e) => {
   const dx = e.clientX - lastX;
   const dy = e.clientY - lastY;
 
-  yaw += dx * 0.006; // Ajustado para sentido correto
+  yaw -= dx * 0.006; // Rotação fluida e correta com o arraste
   pitch += dy * 0.004;
   pitch = THREE.MathUtils.clamp(pitch, -0.1, 0.85);
 
@@ -475,17 +475,15 @@ function animate() {
 
     const speed = 7;
 
-    // CÁLCULO CORRIGIDO DE MOVIMENTO ALINHADO COM A CÂMERA
-    const moveX = Math.sin(yaw) * forward + Math.cos(yaw) * sideways;
-    const moveZ = Math.cos(yaw) * forward - Math.sin(yaw) * sideways;
+    // CÁLCULO DE VETORES CORRIGIDO E ALINHADO COM A CÂMERA EM TERCEIRA PESSOA
+    const moveX = Math.sin(yaw) * forward - Math.cos(yaw) * sideways;
+    const moveZ = Math.cos(yaw) * forward + Math.sin(yaw) * sideways;
 
     player.position.x += moveX * speed * dt;
     player.position.z += moveZ * speed * dt;
 
-    // Rotação suave do personagem para a direção do movimento
-    const targetRotation = Math.atan2(moveX, moveZ);
-    player.rotation.y = targetRotation;
-    
+    // Rotação suave do personagem para a direção exata do movimento
+    player.rotation.y = Math.atan2(moveX, moveZ);
     walkTime += dt * 10;
   }
 
@@ -527,7 +525,7 @@ function animate() {
     body.position.y = 0;
   }
 
-  // CÂMERA EM TERCEIRA PESSOA
+  // POSICIONAMENTO DA CÂMERA EM TERCEIRA PESSOA
   const distance = 8;
   const target = new THREE.Vector3(
     player.position.x,
