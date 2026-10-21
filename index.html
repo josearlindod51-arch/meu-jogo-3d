@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -12,7 +13,7 @@ body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial;color:white;t
 #info small{display:block;margin-top:5px}
 #controls{position:fixed;bottom:20px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end;z-index:3}
 .pad{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;gap:5px}
-button{border:1px solid #ffffff70;background:#29213dcc;color:white;border-radius:13px;font-size:23px;touch-action:none;outline:none;user-select:none}
+button{border:1px solid #ffffff70;background:#29213dcc;color:white;border-radius:13px;font-size:23px;touch-action:none}
 button:active{background:#8156d9}
 #up{grid-column:2}#left{grid-column:1;grid-row:2}
 #down{grid-column:2;grid-row:2}#right{grid-column:3;grid-row:2}
@@ -70,13 +71,13 @@ function block(x,y,z,sx,sy,sz,color,collide=true){
 const obstacles=[];
 block(0,-0.5,0,120,1,120,0x62b94f,false);
 
-// Caminhos quadriculados
+// Checkered paths
 for(let i=-5;i<=5;i++){
   block(i*3,0.015,0,2.8,0.04,2.8, i%2?0xb9b9b9:0xd6d6d6,false);
   block(0,0.02,i*3,2.8,0.04,2.8, i%2?0xb9b9b9:0xd6d6d6,false);
 }
 
-// Árvores
+// Trees
 for(let i=0;i<75;i++){
   const x=(Math.random()-.5)*95;
   const z=(Math.random()-.5)*95;
@@ -91,7 +92,7 @@ for(let i=0;i<75;i++){
   scene.add(crown);
 }
 
-// Plataformas e construções coloridas
+// Colorful platforms and buildings
 block(-8,1,-8,5,2,5,0x9b63ed);
 block(-8,3,-8,3,2,3,0xf1c65c);
 block(8,1,-8,5,2,5,0xe76f8a);
@@ -99,7 +100,7 @@ block(8,3,-8,3,2,3,0x64c9e8);
 block(-8,1,8,5,2,5,0x4385e8);
 block(8,1,8,5,2,5,0xf39b43);
 
-// Personagem em blocos
+// Block character
 const player=new THREE.Group();
 scene.add(player);
 
@@ -132,31 +133,16 @@ for(const x of [-0.67,0.67]){
 }
 player.position.set(0,0,5);
 
-// Mapeamento de controles (Teclado e Touch)
 const keys={};
-const buttons={
-  up:'w', down:'s', left:'a', right:'d',
-  ArrowUp:'w', ArrowDown:'s', ArrowLeft:'a', ArrowRight:'d'
-};
-
-for(const [id,key] of Object.entries({up:'w',down:'s',left:'a',right:'d'})){
+const buttons={up:'w',down:'s',left:'a',right:'d'};
+for(const [id,key] of Object.entries(buttons)){
   const el=document.getElementById(id);
-  if(el){
-    el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;if(e.pointerId)el.setPointerCapture(e.pointerId)});
-    ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>{
-      el.addEventListener(ev,()=>keys[key]=false);
-    });
-  }
+  el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});
+  for(const ev of ['pointerup','pointercancel','lostpointercapture'])
+    el.addEventListener(ev,()=>keys[key]=false);
 }
-
-addEventListener('keydown',e=>{
-  if(buttons[e.key]) keys[buttons[e.key]]=true;
-  if(e.code==='Space') jump();
-});
-addEventListener('keyup',e=>{
-  if(buttons[e.key]) keys[buttons[e.key]]=false;
-});
-
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space')jump()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
 
 let vy=0, grounded=true, angle=0, walk=0;
@@ -169,15 +155,11 @@ function collides(x,z){
   return false;
 }
 
-// Controle de rotação por arrastar a tela (Mouse / Touch)
 let dragging=false,lastX=0;
 renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX});
 addEventListener('pointerup',()=>dragging=false);
 addEventListener('pointermove',e=>{
-  if(dragging){
-    angle-=(e.clientX-lastX)*0.008;
-    lastX=e.clientX;
-  }
+  if(dragging){angle-=(e.clientX-lastX)*0.008;lastX=e.clientX}
 });
 
 const status=document.getElementById('status');
@@ -190,27 +172,21 @@ function animate(){
 
   let forward=(keys.w?1:0)-(keys.s?1:0);
   let side=(keys.d?1:0)-(keys.a?1:0);
-  let moving=forward!==0||side!==0;
+  const moving=forward!==0||side!==0;
 
-  // Movimentação baseada no ângulo atual da câmera
-  let dx=(Math.sin(angle)*forward + Math.cos(angle)*side)*5*dt;
-  let dz=(Math.cos(angle)*forward - Math.sin(angle)*side)*5*dt;
-
+  let dx=(Math.sin(angle)*forward+Math.cos(angle)*side)*5*dt;
+  let dz=(Math.cos(angle)*forward-Math.sin(angle)*side)*5*dt;
   const nx=THREE.MathUtils.clamp(player.position.x+dx,-55,55);
   const nz=THREE.MathUtils.clamp(player.position.z+dz,-55,55);
-  
-  if(!collides(nx,player.position.z)) player.position.x=nx;
-  if(!collides(player.position.x,nz)) player.position.z=nz;
+  if(!collides(nx,player.position.z))player.position.x=nx;
+  if(!collides(player.position.x,nz))player.position.z=nz;
 
   vy-=18*dt;
   player.position.y+=vy*dt;
   if(player.position.y<=0){player.position.y=0;vy=0;grounded=true}
 
   if(moving){
-    // Alinha a rotação do personagem para a direção do movimento considerando a câmera
-    let moveAngle = Math.atan2(dx, dz);
-    player.rotation.y = moveAngle;
-    
+    player.rotation.y=Math.atan2(dx,dz)+Math.PI;
     walk+=dt*10;
     legs[0].rotation.x=Math.sin(walk)*0.65;
     legs[1].rotation.x=-Math.sin(walk)*0.65;
@@ -218,22 +194,19 @@ function animate(){
     legs.forEach(l=>l.rotation.x=THREE.MathUtils.damp(l.rotation.x,0,10,dt));
   }
 
-  // Suavização da câmera em terceira pessoa
   const target=new THREE.Vector3(player.position.x,player.position.y+1.5,player.position.z);
   const desired=new THREE.Vector3(
     target.x-Math.sin(angle)*8,
     target.y+4,
     target.z+Math.cos(angle)*8
   );
-  camera.position.lerp(desired,1-Math.exp(-8*dt));
+  camera.position.lerp(desired,1-Math.exp(-5*dt));
   camera.lookAt(target);
-
-  status.textContent=moving?'Explorando o mundo...':'Use as setas ou W A S D para andar';
+  status.textContent=moving?'Explorando o mundo...':'Use as setas para andar';
   renderer.render(scene,camera);
 }
 animate();
 
-// Responsividade da tela
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
