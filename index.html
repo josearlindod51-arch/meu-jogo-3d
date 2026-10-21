@@ -170,12 +170,12 @@ function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),0.04);
 
-  let forward=(keys.w?1:0)-(keys.s?1:0);
+  let forward=(keys.s?1:0)-(keys.w?1:0);
   let side=(keys.d?1:0)-(keys.a?1:0);
   const moving=forward!==0||side!==0;
 
   let dx=(Math.sin(angle)*forward+Math.cos(angle)*side)*5*dt;
-  let dz=(Math.cos(angle)*forward-Math.sin(angle)*side)*5*dt;
+  let dz=-(Math.cos(angle)*forward-Math.sin(angle)*side)*5*dt;
   const nx=THREE.MathUtils.clamp(player.position.x+dx,-55,55);
   const nz=THREE.MathUtils.clamp(player.position.z+dz,-55,55);
   if(!collides(nx,player.position.z))player.position.x=nx;
