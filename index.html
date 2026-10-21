@@ -7,9 +7,9 @@
 <title>Violet World</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial;touch-action:none}
+body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial,sans-serif;touch-action:none}
 canvas{display:block;touch-action:none}
-#info{position:fixed;top:12px;left:12px;background:#211735dd;color:white;padding:12px;border-radius:12px;z-index:2}
+#info{position:fixed;top:12px;left:12px;background:#211735e8;color:white;padding:12px 14px;border-radius:12px;z-index:2;pointer-events:none}
 #info b{font-size:20px;color:#c9a5ff}
 #status{font-size:12px;margin-top:5px}
 #controls{position:fixed;bottom:18px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end;z-index:3;pointer-events:none}
@@ -25,7 +25,7 @@ button:active{background:#8955df}
 </style>
 </head>
 <body>
-<div id="info"><b>Violet World</b><div id="status">Carregando...</div></div>
+<div id="info"><b>Violet World</b><div id="status">Preparando personagem...</div></div>
 <div id="hint">Arraste o cenário para girar a câmera</div>
 <div id="controls">
   <div class="pad">
@@ -49,6 +49,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x60734b,2));
@@ -69,16 +70,14 @@ function cube(x,y,z,sx,sy,sz,color){
   return m;
 }
 
-// Ground
+// Mundo
 cube(0,-.5,0,120,1,120,0x62b94f);
 
-// Paths
 for(let i=-5;i<=5;i++){
   cube(i*3,.015,0,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6);
   cube(0,.02,i*3,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6);
 }
 
-// Trees
 for(let i=0;i<65;i++){
   const x=(Math.random()-.5)*100;
   const z=(Math.random()-.5)*100;
@@ -87,7 +86,6 @@ for(let i=0;i<65;i++){
   cube(x,2.8,z,2.5,2.5,2.5,[0x299447,0x37a84a,0x21843b][i%3]);
 }
 
-// Colorful buildings
 cube(-8,1,-8,5,2,5,0x9b63ed);
 cube(-8,3,-8,3,2,3,0xf1c65c);
 cube(8,1,-8,5,2,5,0xe76f8a);
@@ -95,40 +93,85 @@ cube(8,3,-8,3,2,3,0x64c9e8);
 cube(-8,1,8,5,2,5,0x4385e8);
 cube(8,1,8,5,2,5,0xf39b43);
 
-// Character: front of the face points toward local -Z.
+// Personagem estilo bloco
+// A frente do rosto fica virada para o eixo local -Z.
 const player=new THREE.Group();
 scene.add(player);
 
-const purple=new THREE.MeshStandardMaterial({color:0x874be8});
-const skin=new THREE.MeshStandardMaterial({color:0xffd0a1});
-const dark=new THREE.MeshStandardMaterial({color:0x25213b});
-const white=new THREE.MeshStandardMaterial({color:0xffffff});
+const mat=(color,roughness=.85)=>new THREE.MeshStandardMaterial({color,roughness});
+const shirt=mat(0x874be8);
+const skin=mat(0xffc995);
+const pants=mat(0x29243b);
+const shoe=mat(0x171522);
+const eyeWhite=mat(0xffffff);
+const eyeBlack=mat(0x24202a);
+const hair=mat(0x39234b);
+const smileMat=mat(0x703e37);
 
-function part(parent,mat,x,y,z,sx,sy,sz){
-  const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
-  m.position.set(x,y,z);
-  m.castShadow=true;
-  parent.add(m);
-  return m;
+function makePart(parent,material,x,y,z,sx,sy,sz){
+  const mesh=new THREE.Mesh(
+    new THREE.BoxGeometry(sx,sy,sz),
+    material
+  );
+  mesh.position.set(x,y,z);
+  mesh.castShadow=true;
+  mesh.receiveShadow=true;
+  parent.add(mesh);
+  return mesh;
 }
 
-part(player,purple,0,1.65,0,1,1.2,.5);
-part(player,skin,0,2.55,0,.75,.75,.7);
-part(player,white,-.17,2.62,-.36,.13,.15,.05);
-part(player,white,.17,2.62,-.36,.13,.15,.05);
-part(player,dark,-.17,2.62,-.4,.06,.08,.03);
-part(player,dark,.17,2.62,-.4,.06,.08,.03);
+// Torso e pescoço
+makePart(player,shirt,0,1.62,0,.95,1.05,.48);
+makePart(player,skin,0,2.19,0,.25,.2,.25);
 
-const legs=[];
-for(const x of [-.27,.27]){
-  legs.push(part(player,dark,x,.8,0,.36,.8,.4));
+// Cabeça
+makePart(player,skin,0,2.57,0,.78,.72,.7);
+
+// Cabelo em blocos no topo e atrás
+makePart(player,hair,0,2.94,.025,.81,.19,.73);
+makePart(player,hair,-.31,2.79,.05,.18,.27,.68);
+makePart(player,hair,.31,2.79,.05,.18,.27,.68);
+
+// Olhos no lado da frente (-Z)
+makePart(player,eyeWhite,-.17,2.62,-.357,.15,.15,.045);
+makePart(player,eyeWhite,.17,2.62,-.357,.15,.15,.045);
+makePart(player,eyeBlack,-.16,2.62,-.385,.065,.09,.025);
+makePart(player,eyeBlack,.18,2.62,-.385,.065,.09,.025);
+
+// Sorriso simples
+makePart(player,smileMat,0,2.43,-.361,.22,.035,.025);
+makePart(player,smileMat,-.105,2.45,-.36,.035,.045,.025);
+makePart(player,smileMat,.105,2.45,-.36,.035,.045,.025);
+
+// Braços articulados: o pivô fica no ombro.
+function makeArm(x){
+  const pivot=new THREE.Group();
+  pivot.position.set(x,2.02,0);
+  player.add(pivot);
+
+  makePart(pivot,shirt,0,-.18,0,.32,.48,.36);
+  makePart(pivot,skin,0,-.55,0,.3,.32,.33);
+  return pivot;
 }
-part(player,skin,-.67,1.7,0,.3,.9,.35);
-part(player,skin,.67,1.7,0,.3,.9,.35);
+const leftArm=makeArm(-.65);
+const rightArm=makeArm(.65);
+
+// Pernas articuladas: o pivô fica no quadril.
+function makeLeg(x){
+  const pivot=new THREE.Group();
+  pivot.position.set(x,1.15,0);
+  player.add(pivot);
+
+  makePart(pivot,pants,0,-.35,0,.37,.68,.4);
+  makePart(pivot,shoe,0,-.72,-.045,.39,.17,.46);
+  return pivot;
+}
+const leftLeg=makeLeg(-.25);
+const rightLeg=makeLeg(.25);
 
 player.position.set(0,0,5);
 
-// Controls
+// Controles originais
 const keys={w:false,s:false,a:false,d:false};
 const keyMap={up:'w',down:'s',left:'a',right:'d'};
 
@@ -141,9 +184,7 @@ for(const [id,key] of Object.entries(keyMap)){
     btn.setPointerCapture(e.pointerId);
   });
   for(const ev of ['pointerup','pointercancel','lostpointercapture']){
-    btn.addEventListener(ev,()=>{
-      keys[key]=false;
-    });
+    btn.addEventListener(ev,()=>keys[key]=false);
   }
 }
 
@@ -160,24 +201,23 @@ addEventListener('blur',()=>{
   for(const k in keys)keys[k]=false;
 });
 
-// Jump
+// Pulo
 let velocityY=0;
 let grounded=true;
+
 function jump(){
   if(grounded){
     velocityY=7;
     grounded=false;
   }
 }
-const jumpBtn=document.getElementById('jump');
-jumpBtn.addEventListener('pointerdown',e=>{
+document.getElementById('jump').addEventListener('pointerdown',e=>{
   e.preventDefault();
   e.stopPropagation();
   jump();
 });
 
-// Camera yaw: zero means the camera is behind the character,
-// on +Z, looking toward -Z.
+// Câmera: mesma lógica da versão funcional
 let yaw=0;
 let dragging=false;
 let lastX=0;
@@ -193,9 +233,8 @@ renderer.domElement.addEventListener('pointerdown',e=>{
 
 renderer.domElement.addEventListener('pointermove',e=>{
   if(!dragging||e.pointerId!==dragPointer)return;
-  const delta=e.clientX-lastX;
+  yaw-=(e.clientX-lastX)*.006;
   lastX=e.clientX;
-  yaw-=delta*.006;
 });
 
 function stopDrag(e){
@@ -207,12 +246,15 @@ function stopDrag(e){
 renderer.domElement.addEventListener('pointerup',stopDrag);
 renderer.domElement.addEventListener('pointercancel',stopDrag);
 
-// Camera follows smoothly without changing direction by itself.
+// Animações
 const clock=new THREE.Clock();
 const target=new THREE.Vector3();
 const desired=new THREE.Vector3();
 const look=new THREE.Vector3();
-let walk=0;
+let walkTime=0;
+
+const smooth=(current,targetValue,speed,dt)=>
+  THREE.MathUtils.damp(current,targetValue,speed,dt);
 
 function animate(){
   requestAnimationFrame(animate);
@@ -227,36 +269,71 @@ function animate(){
     const f=forward/length;
     const s=side/length;
 
-    // Movement is relative to the camera, not the character's old rotation.
     dx=(Math.sin(yaw)*f+Math.cos(yaw)*s)*5*dt;
     dz=(-Math.cos(yaw)*f+Math.sin(yaw)*s)*5*dt;
 
-    // Local face points -Z. This angle makes it face (dx,dz).
-    const desiredYaw=Math.atan2(-dx,-dz);
-    player.rotation.y=desiredYaw;
-
-    walk+=dt*10;
-    legs[0].rotation.x=Math.sin(walk)*.55;
-    legs[1].rotation.x=-Math.sin(walk)*.55;
-  }else{
-    legs[0].rotation.x=THREE.MathUtils.damp(legs[0].rotation.x,0,10,dt);
-    legs[1].rotation.x=THREE.MathUtils.damp(legs[1].rotation.x,0,10,dt);
+    // O rosto aponta para a direção do movimento.
+    player.rotation.y=Math.atan2(-dx,-dz);
+    walkTime+=dt*9;
   }
 
   player.position.x=THREE.MathUtils.clamp(player.position.x+dx,-57,57);
   player.position.z=THREE.MathUtils.clamp(player.position.z+dz,-57,57);
 
+  // Física simples de pulo
   velocityY-=18*dt;
   player.position.y+=velocityY*dt;
+
   if(player.position.y<=0){
     player.position.y=0;
     velocityY=0;
     grounded=true;
   }
 
-  target.set(player.position.x,player.position.y+1.5,player.position.z);
+  const airborne=!grounded;
+  const moving=length>0;
 
-  // Camera remains behind the player based on the touch-controlled yaw.
+  // Caminhada: braços e pernas em sentidos opostos.
+  const swing=moving?Math.sin(walkTime)*.65:0;
+  const armSwing=moving?Math.sin(walkTime+Math.PI)*.65:0;
+
+  const jumpBlend=airborne?1:0;
+
+  leftLeg.rotation.x=smooth(
+    leftLeg.rotation.x,
+    swing-jumpBlend*.45,12,dt
+  );
+  rightLeg.rotation.x=smooth(
+    rightLeg.rotation.x,
+    -swing-jumpBlend*.45,12,dt
+  );
+
+  leftArm.rotation.x=smooth(
+    leftArm.rotation.x,
+    armSwing,12,dt
+  );
+  rightArm.rotation.x=smooth(
+    rightArm.rotation.x,
+    -armSwing,12,dt
+  );
+
+  // Braços abrem um pouco durante o salto.
+  leftArm.rotation.z=smooth(
+    leftArm.rotation.z,
+    jumpBlend*.22,10,dt
+  );
+  rightArm.rotation.z=smooth(
+    rightArm.rotation.z,
+    -jumpBlend*.22,10,dt
+  );
+
+  // Câmera suave seguindo o personagem.
+  target.set(
+    player.position.x,
+    player.position.y+1.55,
+    player.position.z
+  );
+
   desired.set(
     target.x-Math.sin(yaw)*8,
     target.y+3.5,
@@ -267,8 +344,8 @@ function animate(){
   look.copy(target);
   camera.lookAt(look);
 
-  document.getElementById('status').textContent=
-    length>0?'Explorando...':'Arraste o cenário para girar a câmera';
+  const status=document.getElementById('status');
+  status.textContent=airborne?'Pulando!':moving?'Explorando...':'Pronto para explorar';
 
   renderer.render(scene,camera);
 }
