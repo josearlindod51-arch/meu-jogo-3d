@@ -3,27 +3,27 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Meu Mundo 3D</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Violet World</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial;color:white;touch-action:none}
-#info{position:fixed;top:12px;left:12px;background:#17152dcc;padding:12px 15px;border-radius:12px;z-index:2}
-#info b{color:#c5a3ff;font-size:19px}
+#info{position:fixed;top:12px;left:12px;padding:12px 15px;border-radius:12px;background:#17152ddd;z-index:2}
+#info b{font-size:20px;color:#c5a3ff}
 #info small{display:block;margin-top:5px}
 #controls{position:fixed;bottom:20px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end;z-index:3}
-.pad{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;gap:5px}
-button{border:1px solid #ffffff70;background:#29213dcc;color:white;border-radius:13px;font-size:23px;touch-action:none}
+.pad{display:grid;grid-template-columns:54px 54px 54px;grid-template-rows:54px 54px;gap:5px}
+button{border:1px solid #ffffff70;background:#29213ddd;color:white;border-radius:14px;font-size:23px;touch-action:none}
 button:active{background:#8156d9}
-#up{grid-column:2}#left{grid-column:1;grid-row:2}
-#down{grid-column:2;grid-row:2}#right{grid-column:3;grid-row:2}
-#jump{width:70px;height:70px;border-radius:50%;background:#7446c9dd}
-#loading{position:fixed;inset:0;display:grid;place-items:center;background:#202039;color:white;z-index:10}
+#up{grid-column:2}
+#left{grid-column:1;grid-row:2}
+#down{grid-column:2;grid-row:2}
+#right{grid-column:3;grid-row:2}
+#jump{width:72px;height:72px;border-radius:50%;background:#7446c9dd}
 </style>
 </head>
 <body>
-<div id="loading">Carregando mundo 3D...</div>
-<div id="info"><b>Violet World</b><small>Meu primeiro mundo 3D</small><small id="status">Carregando...</small></div>
+<div id="info"><b>Violet World</b><small>Mundo 3D</small><small id="status">Carregando...</small></div>
 <div id="controls">
   <div class="pad">
     <button id="up">▲</button>
@@ -37,52 +37,50 @@ button:active{background:#8156d9}
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
-scene.fog = new THREE.Fog(0x87ceeb, 45, 110);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x87ceeb);
+scene.fog=new THREE.Fog(0x87ceeb,50,130);
 
-const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 300);
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,300);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x667744, 2));
-const sun = new THREE.DirectionalLight(0xffffff, 2);
+scene.add(new THREE.HemisphereLight(0xffffff,0x68734c,2));
+const sun=new THREE.DirectionalLight(0xffffff,2);
 sun.position.set(20,35,15);
-sun.castShadow = true;
+sun.castShadow=true;
 scene.add(sun);
 
-function block(x,y,z,sx,sy,sz,color,collide=true){
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(sx,sy,sz),
-    new THREE.MeshStandardMaterial({color,roughness:0.9})
-  );
-  mesh.position.set(x,y,z);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
-  if(collide) obstacles.push({x,z,hx:sx/2,hz:sz/2,top:y+sy/2});
-  return mesh;
-}
-
 const obstacles=[];
-block(0,-0.5,0,120,1,120,0x62b94f,false);
-
-// Checkered paths
-for(let i=-5;i<=5;i++){
-  block(i*3,0.015,0,2.8,0.04,2.8, i%2?0xb9b9b9:0xd6d6d6,false);
-  block(0,0.02,i*3,2.8,0.04,2.8, i%2?0xb9b9b9:0xd6d6d6,false);
+function block(x,y,z,sx,sy,sz,color,solid=true){
+  const m=new THREE.Mesh(
+    new THREE.BoxGeometry(sx,sy,sz),
+    new THREE.MeshStandardMaterial({color,roughness:.9})
+  );
+  m.position.set(x,y,z);
+  m.castShadow=true;
+  m.receiveShadow=true;
+  scene.add(m);
+  if(solid)obstacles.push({x,z,hx:sx/2,hz:sz/2,top:y+sy/2});
+  return m;
 }
 
-// Trees
+block(0,-.5,0,120,1,120,0x62b94f,false);
+
+for(let i=-5;i<=5;i++){
+  block(i*3,.015,0,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6,false);
+  block(0,.02,i*3,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6,false);
+}
+
 for(let i=0;i<75;i++){
-  const x=(Math.random()-.5)*95;
-  const z=(Math.random()-.5)*95;
-  if(Math.abs(x)<9&&Math.abs(z)<9) continue;
-  block(x,1,z,0.7,2,0.7,0x79502c,false);
+  const x=(Math.random()-.5)*100;
+  const z=(Math.random()-.5)*100;
+  if(Math.abs(x)<11&&Math.abs(z)<11)continue;
+  block(x,1,z,.7,2,.7,0x79502c,false);
   const crown=new THREE.Mesh(
     new THREE.BoxGeometry(2.5,2.5,2.5),
     new THREE.MeshStandardMaterial({color:[0x299447,0x37a84a,0x21843b][i%3]})
@@ -92,7 +90,6 @@ for(let i=0;i<75;i++){
   scene.add(crown);
 }
 
-// Colorful platforms and buildings
 block(-8,1,-8,5,2,5,0x9b63ed);
 block(-8,3,-8,3,2,3,0xf1c65c);
 block(8,1,-8,5,2,5,0xe76f8a);
@@ -100,7 +97,6 @@ block(8,3,-8,3,2,3,0x64c9e8);
 block(-8,1,8,5,2,5,0x4385e8);
 block(8,1,8,5,2,5,0xf39b43);
 
-// Block character
 const player=new THREE.Group();
 scene.add(player);
 
@@ -117,84 +113,120 @@ function part(parent,mat,x,y,z,sx,sy,sz){
   return m;
 }
 
-part(player,purple,0,1.65,0,1,1.2,0.5);
-part(player,skin,0,2.55,0,0.75,0.75,0.7);
-part(player,white,-0.17,2.62,-0.36,0.13,0.15,0.05);
-part(player,white,0.17,2.62,-0.36,0.13,0.15,0.05);
-part(player,dark,-0.17,2.62,-0.4,0.06,0.08,0.03);
-part(player,dark,0.17,2.62,-0.4,0.06,0.08,0.03);
+// O rosto fica no lado -Z do personagem.
+part(player,purple,0,1.65,0,1,1.2,.5);
+part(player,skin,0,2.55,0,.75,.75,.7);
+part(player,white,-.17,2.62,-.36,.13,.15,.05);
+part(player,white,.17,2.62,-.36,.13,.15,.05);
+part(player,dark,-.17,2.62,-.4,.06,.08,.03);
+part(player,dark,.17,2.62,-.4,.06,.08,.03);
+
 const legs=[];
-for(const x of [-0.27,0.27]){
-  const leg=part(player,dark,x,0.8,0,0.36,0.8,0.4);
-  legs.push(leg);
+for(const x of [-.27,.27]){
+  legs.push(part(player,dark,x,.8,0,.36,.8,.4));
 }
-for(const x of [-0.67,0.67]){
-  part(player,skin,x,1.7,0,0.3,0.9,0.35);
-}
+part(player,skin,-.67,1.7,0,.3,.9,.35);
+part(player,skin,.67,1.7,0,.3,.9,.35);
 player.position.set(0,0,5);
 
 const keys={};
-const buttons={up:'w',down:'s',left:'a',right:'d'};
-for(const [id,key] of Object.entries(buttons)){
-  const el=document.getElementById(id);
-  el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});
-  for(const ev of ['pointerup','pointercancel','lostpointercapture'])
-    el.addEventListener(ev,()=>keys[key]=false);
-}
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.code==='Space')jump()});
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+const map={up:'w',down:'s',left:'a',right:'d'};
 
-let vy=0, grounded=true, angle=0, walk=0;
-function jump(){if(grounded){vy=7;grounded=false}}
+for(const [id,key] of Object.entries(map)){
+  const el=document.getElementById(id);
+  el.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    keys[key]=true;
+    el.setPointerCapture(e.pointerId);
+  });
+  for(const ev of ['pointerup','pointercancel','lostpointercapture']){
+    el.addEventListener(ev,()=>keys[key]=false);
+  }
+}
+
+addEventListener('keydown',e=>{
+  keys[e.key.toLowerCase()]=true;
+  if(e.code==='Space')jump();
+});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+document.getElementById('jump').addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  jump();
+});
+
+let vy=0,grounded=true,angle=0,walk=0;
+function jump(){
+  if(grounded){vy=7;grounded=false;}
+}
 
 function collides(x,z){
   for(const o of obstacles){
-    if(Math.abs(x-o.x)<o.hx+0.48 && Math.abs(z-o.z)<o.hz+0.35 && o.top>0.1) return true;
+    if(o.top>.1&&Math.abs(x-o.x)<o.hx+.48&&Math.abs(z-o.z)<o.hz+.35)return true;
   }
   return false;
 }
 
+// Arraste o dedo na área do mundo para girar a câmera.
 let dragging=false,lastX=0;
-renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX});
+renderer.domElement.addEventListener('pointerdown',e=>{
+  dragging=true;
+  lastX=e.clientX;
+});
 addEventListener('pointerup',()=>dragging=false);
+addEventListener('pointercancel',()=>dragging=false);
 addEventListener('pointermove',e=>{
-  if(dragging){angle-=(e.clientX-lastX)*0.008;lastX=e.clientX}
+  if(dragging){
+    angle-=(e.clientX-lastX)*.008;
+    lastX=e.clientX;
+  }
 });
 
 const status=document.getElementById('status');
-document.getElementById('loading').remove();
-
 const clock=new THREE.Clock();
+
 function animate(){
   requestAnimationFrame(animate);
-  const dt=Math.min(clock.getDelta(),0.04);
+  const dt=Math.min(clock.getDelta(),.04);
 
-  let forward=(keys.s?1:0)-(keys.w?1:0);
-  let side=(keys.d?1:0)-(keys.a?1:0);
+  const forward=(keys.w?1:0)-(keys.s?1:0);
+  const side=(keys.d?1:0)-(keys.a?1:0);
   const moving=forward!==0||side!==0;
 
-  let dx=(Math.sin(angle)*forward+Math.cos(angle)*side)*5*dt;
-  let dz=-(Math.cos(angle)*forward-Math.sin(angle)*side)*5*dt;
-  const nx=THREE.MathUtils.clamp(player.position.x+dx,-55,55);
-  const nz=THREE.MathUtils.clamp(player.position.z+dz,-55,55);
+  // Frente é a direção para onde a câmera olha no plano horizontal.
+  const dx=(Math.sin(angle)*forward+Math.cos(angle)*side)*5*dt;
+  const dz=(-Math.cos(angle)*forward+Math.sin(angle)*side)*5*dt;
+
+  const nx=THREE.MathUtils.clamp(player.position.x+dx,-57,57);
+  const nz=THREE.MathUtils.clamp(player.position.z+dz,-57,57);
   if(!collides(nx,player.position.z))player.position.x=nx;
   if(!collides(player.position.x,nz))player.position.z=nz;
 
   vy-=18*dt;
   player.position.y+=vy*dt;
-  if(player.position.y<=0){player.position.y=0;vy=0;grounded=true}
-
-  if(moving){
-    player.rotation.y=Math.atan2(dx,dz)+Math.PI;
-    walk+=dt*10;
-    legs[0].rotation.x=Math.sin(walk)*0.65;
-    legs[1].rotation.x=-Math.sin(walk)*0.65;
-  }else{
-    legs.forEach(l=>l.rotation.x=THREE.MathUtils.damp(l.rotation.x,0,10,dt));
+  if(player.position.y<=0){
+    player.position.y=0;
+    vy=0;
+    grounded=true;
   }
 
-  const target=new THREE.Vector3(player.position.x,player.position.y+1.5,player.position.z);
+  if(moving){
+    // Frente visual do boneco aponta para a direção em que ele anda.
+    player.rotation.y=Math.atan2(dx,-dz);
+    walk+=dt*10;
+    legs[0].rotation.x=Math.sin(walk)*.65;
+    legs[1].rotation.x=-Math.sin(walk)*.65;
+  }else{
+    for(const l of legs){
+      l.rotation.x=THREE.MathUtils.damp(l.rotation.x,0,10,dt);
+    }
+  }
+
+  const target=new THREE.Vector3(
+    player.position.x,
+    player.position.y+1.5,
+    player.position.z
+  );
+
   const desired=new THREE.Vector3(
     target.x-Math.sin(angle)*8,
     target.y+4,
@@ -202,9 +234,11 @@ function animate(){
   );
   camera.position.lerp(desired,1-Math.exp(-5*dt));
   camera.lookAt(target);
-  status.textContent=moving?'Explorando o mundo...':'Use as setas para andar';
+
+  status.textContent=moving?'Explorando...':'Use os controles para andar';
   renderer.render(scene,camera);
 }
+
 animate();
 
 addEventListener('resize',()=>{
