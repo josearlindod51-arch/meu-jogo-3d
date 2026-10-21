@@ -7,23 +7,26 @@
 <title>Violet World</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial;color:white;touch-action:none}
-#info{position:fixed;top:12px;left:12px;padding:12px 15px;border-radius:12px;background:#17152ddd;z-index:2}
-#info b{font-size:20px;color:#c5a3ff}
-#info small{display:block;margin-top:5px}
-#controls{position:fixed;bottom:20px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end;z-index:3}
+body{margin:0;overflow:hidden;background:#87ceeb;font-family:Arial;touch-action:none}
+canvas{display:block;touch-action:none}
+#info{position:fixed;top:12px;left:12px;background:#211735dd;color:white;padding:12px;border-radius:12px;z-index:2}
+#info b{font-size:20px;color:#c9a5ff}
+#status{font-size:12px;margin-top:5px}
+#controls{position:fixed;bottom:18px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:end;z-index:3;pointer-events:none}
 .pad{display:grid;grid-template-columns:54px 54px 54px;grid-template-rows:54px 54px;gap:5px}
-button{border:1px solid #ffffff70;background:#29213ddd;color:white;border-radius:14px;font-size:23px;touch-action:none}
-button:active{background:#8156d9}
+button{pointer-events:auto;width:54px;height:54px;border:1px solid #ffffff70;border-radius:14px;background:#28203ddd;color:white;font-size:23px;touch-action:none;user-select:none;-webkit-user-select:none}
+button:active{background:#8955df}
 #up{grid-column:2}
 #left{grid-column:1;grid-row:2}
 #down{grid-column:2;grid-row:2}
 #right{grid-column:3;grid-row:2}
-#jump{width:72px;height:72px;border-radius:50%;background:#7446c9dd}
+#jump{width:70px;height:70px;border-radius:50%;background:#7446c9dd}
+#hint{position:fixed;bottom:145px;left:15px;color:white;background:#17152d99;padding:7px 10px;border-radius:8px;font-size:12px;pointer-events:none}
 </style>
 </head>
 <body>
-<div id="info"><b>Violet World</b><small>Mundo 3D</small><small id="status">Carregando...</small></div>
+<div id="info"><b>Violet World</b><div id="status">Carregando...</div></div>
+<div id="hint">Arraste o cenário para girar a câmera</div>
 <div id="controls">
   <div class="pad">
     <button id="up">▲</button>
@@ -39,24 +42,22 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.m
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x87ceeb);
-scene.fog=new THREE.Fog(0x87ceeb,50,130);
+scene.fog=new THREE.Fog(0x87ceeb,65,150);
 
-const camera=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,300);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,300);
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x68734c,2));
+scene.add(new THREE.HemisphereLight(0xffffff,0x60734b,2));
 const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(20,35,15);
+sun.position.set(25,40,20);
 sun.castShadow=true;
 scene.add(sun);
 
-const obstacles=[];
-function block(x,y,z,sx,sy,sz,color,solid=true){
+function cube(x,y,z,sx,sy,sz,color){
   const m=new THREE.Mesh(
     new THREE.BoxGeometry(sx,sy,sz),
     new THREE.MeshStandardMaterial({color,roughness:.9})
@@ -65,38 +66,36 @@ function block(x,y,z,sx,sy,sz,color,solid=true){
   m.castShadow=true;
   m.receiveShadow=true;
   scene.add(m);
-  if(solid)obstacles.push({x,z,hx:sx/2,hz:sz/2,top:y+sy/2});
   return m;
 }
 
-block(0,-.5,0,120,1,120,0x62b94f,false);
+// Ground
+cube(0,-.5,0,120,1,120,0x62b94f);
 
+// Paths
 for(let i=-5;i<=5;i++){
-  block(i*3,.015,0,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6,false);
-  block(0,.02,i*3,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6,false);
+  cube(i*3,.015,0,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6);
+  cube(0,.02,i*3,2.8,.04,2.8,i%2?0xb9b9b9:0xd6d6d6);
 }
 
-for(let i=0;i<75;i++){
+// Trees
+for(let i=0;i<65;i++){
   const x=(Math.random()-.5)*100;
   const z=(Math.random()-.5)*100;
-  if(Math.abs(x)<11&&Math.abs(z)<11)continue;
-  block(x,1,z,.7,2,.7,0x79502c,false);
-  const crown=new THREE.Mesh(
-    new THREE.BoxGeometry(2.5,2.5,2.5),
-    new THREE.MeshStandardMaterial({color:[0x299447,0x37a84a,0x21843b][i%3]})
-  );
-  crown.position.set(x,2.8,z);
-  crown.castShadow=true;
-  scene.add(crown);
+  if(Math.abs(x)<12&&Math.abs(z)<12)continue;
+  cube(x,1,z,.7,2,.7,0x79502c);
+  cube(x,2.8,z,2.5,2.5,2.5,[0x299447,0x37a84a,0x21843b][i%3]);
 }
 
-block(-8,1,-8,5,2,5,0x9b63ed);
-block(-8,3,-8,3,2,3,0xf1c65c);
-block(8,1,-8,5,2,5,0xe76f8a);
-block(8,3,-8,3,2,3,0x64c9e8);
-block(-8,1,8,5,2,5,0x4385e8);
-block(8,1,8,5,2,5,0xf39b43);
+// Colorful buildings
+cube(-8,1,-8,5,2,5,0x9b63ed);
+cube(-8,3,-8,3,2,3,0xf1c65c);
+cube(8,1,-8,5,2,5,0xe76f8a);
+cube(8,3,-8,3,2,3,0x64c9e8);
+cube(-8,1,8,5,2,5,0x4385e8);
+cube(8,1,8,5,2,5,0xf39b43);
 
+// Character: front of the face points toward local -Z.
 const player=new THREE.Group();
 scene.add(player);
 
@@ -113,7 +112,6 @@ function part(parent,mat,x,y,z,sx,sy,sz){
   return m;
 }
 
-// O rosto fica no lado -Z do personagem.
 part(player,purple,0,1.65,0,1,1.2,.5);
 part(player,skin,0,2.55,0,.75,.75,.7);
 part(player,white,-.17,2.62,-.36,.13,.15,.05);
@@ -127,62 +125,94 @@ for(const x of [-.27,.27]){
 }
 part(player,skin,-.67,1.7,0,.3,.9,.35);
 part(player,skin,.67,1.7,0,.3,.9,.35);
+
 player.position.set(0,0,5);
 
-const keys={};
-const map={up:'w',down:'s',left:'a',right:'d'};
+// Controls
+const keys={w:false,s:false,a:false,d:false};
+const keyMap={up:'w',down:'s',left:'a',right:'d'};
 
-for(const [id,key] of Object.entries(map)){
-  const el=document.getElementById(id);
-  el.addEventListener('pointerdown',e=>{
+for(const [id,key] of Object.entries(keyMap)){
+  const btn=document.getElementById(id);
+  btn.addEventListener('pointerdown',e=>{
     e.preventDefault();
+    e.stopPropagation();
     keys[key]=true;
-    el.setPointerCapture(e.pointerId);
+    btn.setPointerCapture(e.pointerId);
   });
   for(const ev of ['pointerup','pointercancel','lostpointercapture']){
-    el.addEventListener(ev,()=>keys[key]=false);
+    btn.addEventListener(ev,()=>{
+      keys[key]=false;
+    });
   }
 }
 
 addEventListener('keydown',e=>{
-  keys[e.key.toLowerCase()]=true;
+  const k=e.key.toLowerCase();
+  if(k in keys)keys[k]=true;
   if(e.code==='Space')jump();
 });
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
-document.getElementById('jump').addEventListener('pointerdown',e=>{
+addEventListener('keyup',e=>{
+  const k=e.key.toLowerCase();
+  if(k in keys)keys[k]=false;
+});
+addEventListener('blur',()=>{
+  for(const k in keys)keys[k]=false;
+});
+
+// Jump
+let velocityY=0;
+let grounded=true;
+function jump(){
+  if(grounded){
+    velocityY=7;
+    grounded=false;
+  }
+}
+const jumpBtn=document.getElementById('jump');
+jumpBtn.addEventListener('pointerdown',e=>{
   e.preventDefault();
+  e.stopPropagation();
   jump();
 });
 
-let vy=0,grounded=true,angle=0,walk=0;
-function jump(){
-  if(grounded){vy=7;grounded=false;}
-}
+// Camera yaw: zero means the camera is behind the character,
+// on +Z, looking toward -Z.
+let yaw=0;
+let dragging=false;
+let lastX=0;
+let dragPointer=null;
 
-function collides(x,z){
-  for(const o of obstacles){
-    if(o.top>.1&&Math.abs(x-o.x)<o.hx+.48&&Math.abs(z-o.z)<o.hz+.35)return true;
-  }
-  return false;
-}
-
-// Arraste o dedo na área do mundo para girar a câmera.
-let dragging=false,lastX=0;
 renderer.domElement.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='mouse'&&e.button!==0)return;
   dragging=true;
+  dragPointer=e.pointerId;
   lastX=e.clientX;
-});
-addEventListener('pointerup',()=>dragging=false);
-addEventListener('pointercancel',()=>dragging=false);
-addEventListener('pointermove',e=>{
-  if(dragging){
-    angle-=(e.clientX-lastX)*.008;
-    lastX=e.clientX;
-  }
+  renderer.domElement.setPointerCapture(e.pointerId);
 });
 
-const status=document.getElementById('status');
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!dragging||e.pointerId!==dragPointer)return;
+  const delta=e.clientX-lastX;
+  lastX=e.clientX;
+  yaw-=delta*.006;
+});
+
+function stopDrag(e){
+  if(e.pointerId===dragPointer){
+    dragging=false;
+    dragPointer=null;
+  }
+}
+renderer.domElement.addEventListener('pointerup',stopDrag);
+renderer.domElement.addEventListener('pointercancel',stopDrag);
+
+// Camera follows smoothly without changing direction by itself.
 const clock=new THREE.Clock();
+const target=new THREE.Vector3();
+const desired=new THREE.Vector3();
+const look=new THREE.Vector3();
+let walk=0;
 
 function animate(){
   requestAnimationFrame(animate);
@@ -190,55 +220,60 @@ function animate(){
 
   const forward=(keys.w?1:0)-(keys.s?1:0);
   const side=(keys.d?1:0)-(keys.a?1:0);
-  const moving=forward!==0||side!==0;
+  const length=Math.hypot(forward,side);
+  let dx=0,dz=0;
 
-  // Frente é a direção para onde a câmera olha no plano horizontal.
-  const dx=(Math.sin(angle)*forward+Math.cos(angle)*side)*5*dt;
-  const dz=(-Math.cos(angle)*forward+Math.sin(angle)*side)*5*dt;
+  if(length>0){
+    const f=forward/length;
+    const s=side/length;
 
-  const nx=THREE.MathUtils.clamp(player.position.x+dx,-57,57);
-  const nz=THREE.MathUtils.clamp(player.position.z+dz,-57,57);
-  if(!collides(nx,player.position.z))player.position.x=nx;
-  if(!collides(player.position.x,nz))player.position.z=nz;
+    // Movement is relative to the camera, not the character's old rotation.
+    dx=(Math.sin(yaw)*f+Math.cos(yaw)*s)*5*dt;
+    dz=(-Math.cos(yaw)*f+Math.sin(yaw)*s)*5*dt;
 
-  vy-=18*dt;
-  player.position.y+=vy*dt;
+    // Local face points -Z. This angle makes it face (dx,dz).
+    const desiredYaw=Math.atan2(-dx,-dz);
+    player.rotation.y=desiredYaw;
+
+    walk+=dt*10;
+    legs[0].rotation.x=Math.sin(walk)*.55;
+    legs[1].rotation.x=-Math.sin(walk)*.55;
+  }else{
+    legs[0].rotation.x=THREE.MathUtils.damp(legs[0].rotation.x,0,10,dt);
+    legs[1].rotation.x=THREE.MathUtils.damp(legs[1].rotation.x,0,10,dt);
+  }
+
+  player.position.x=THREE.MathUtils.clamp(player.position.x+dx,-57,57);
+  player.position.z=THREE.MathUtils.clamp(player.position.z+dz,-57,57);
+
+  velocityY-=18*dt;
+  player.position.y+=velocityY*dt;
   if(player.position.y<=0){
     player.position.y=0;
-    vy=0;
+    velocityY=0;
     grounded=true;
   }
 
-  if(moving){
-    // Frente visual do boneco aponta para a direção em que ele anda.
-    player.rotation.y=Math.atan2(dx,-dz);
-    walk+=dt*10;
-    legs[0].rotation.x=Math.sin(walk)*.65;
-    legs[1].rotation.x=-Math.sin(walk)*.65;
-  }else{
-    for(const l of legs){
-      l.rotation.x=THREE.MathUtils.damp(l.rotation.x,0,10,dt);
-    }
-  }
+  target.set(player.position.x,player.position.y+1.5,player.position.z);
 
-  const target=new THREE.Vector3(
-    player.position.x,
-    player.position.y+1.5,
-    player.position.z
+  // Camera remains behind the player based on the touch-controlled yaw.
+  desired.set(
+    target.x-Math.sin(yaw)*8,
+    target.y+3.5,
+    target.z+Math.cos(yaw)*8
   );
 
-  const desired=new THREE.Vector3(
-    target.x-Math.sin(angle)*8,
-    target.y+4,
-    target.z+Math.cos(angle)*8
-  );
-  camera.position.lerp(desired,1-Math.exp(-5*dt));
-  camera.lookAt(target);
+  camera.position.lerp(desired,1-Math.exp(-6*dt));
+  look.copy(target);
+  camera.lookAt(look);
 
-  status.textContent=moving?'Explorando...':'Use os controles para andar';
+  document.getElementById('status').textContent=
+    length>0?'Explorando...':'Arraste o cenário para girar a câmera';
+
   renderer.render(scene,camera);
 }
 
+camera.position.set(0,5,13);
 animate();
 
 addEventListener('resize',()=>{
